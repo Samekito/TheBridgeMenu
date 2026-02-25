@@ -1,0 +1,48 @@
+{
+  "name": "the-bridge-hotel-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "npm@11.6.2",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "dev:admin": "turbo run dev --filter admin-app",
+    "dev:customer": "turbo run dev --filter customer-app",
+    "build": "turbo run build",
+    "build:admin": "turbo run build --filter admin-app",
+    "build:customer": "turbo run build --filter customer-app",
+    "lint": "turbo run lint"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.2.1",
+    "@tanstack/react-query": "^5.90.21",
+    "axios": "^1.13.5",
+    "framer-motion": "^12.34.3",
+    "lucide-react": "^0.575.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-hook-form": "^7.71.2",
+    "react-router-dom": "^7.13.1",
+    "tailwindcss": "^4.2.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "concurrently": "^9.0.1",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.5.0",
+    "laravel-vite-plugin": "^2.0.0",
+    "turbo": "latest",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.48.0",
+    "vite": "^7.3.1"
+  }
+}
