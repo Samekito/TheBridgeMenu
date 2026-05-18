@@ -9,12 +9,18 @@
   ],
   "scripts": {
     "dev": "turbo run dev",
+    "dev:backend": "turbo run dev --filter backend",
+    "dev:worker": "npm run --prefix apps/backend queue:work",
     "dev:admin": "turbo run dev --filter admin-app",
     "dev:customer": "turbo run dev --filter customer-app",
     "build": "turbo run build",
+    "build:backend": "turbo run build --filter backend",
     "build:admin": "turbo run build --filter admin-app",
     "build:customer": "turbo run build --filter customer-app",
-    "lint": "turbo run lint"
+    "lint": "turbo run lint",
+    "lint:backend": "turbo run lint --filter backend",
+    "lint:admin": "turbo run lint --filter admin-app",
+    "lint:customer": "turbo run lint --filter customer-app"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.1",
@@ -40,7 +46,7 @@
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
     "laravel-vite-plugin": "^2.0.0",
-    "turbo": "latest",
+    "turbo": "^2.4.0",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.48.0",
     "vite": "^7.3.1"
