@@ -17,7 +17,14 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export function CartProvider({ children }: { children: React.ReactNode }) {
     const [items, setItems] = useState<CartItem[]>(() => {
         const saved = localStorage.getItem('bridge_cart');
-        return saved ? JSON.parse(saved) : [];
+        if (!saved) return [];
+        try {
+            return JSON.parse(saved);
+        } catch (e) {
+            console.error('Failed to parse cart from local storage', e);
+            localStorage.removeItem('bridge_cart');
+            return [];
+        }
     });
 
     useEffect(() => {
