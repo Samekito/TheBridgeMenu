@@ -11,7 +11,11 @@ export default function OrdersView({ currentUser }: { currentUser: UserType }) {
     const { data: orders, isLoading } = useQuery({
         queryKey: ['orders', filter],
         queryFn: () => fetchOrders(filter),
-        refetchInterval: filter === 'pending' ? 10000 : false // Auto-refresh pending orders every 10s
+        refetchInterval: (query) => {
+            if (filter !== 'pending') return false;
+            return query.state.error ? false : 10000;
+        },
+        refetchIntervalInBackground: false
     });
 
     const clearMutation = useMutation({
@@ -53,7 +57,7 @@ export default function OrdersView({ currentUser }: { currentUser: UserType }) {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {orders?.map((order: Order) => (
+                        {(orders?.data || orders)?.map((order: Order) => (
                             <div key={order.id} className="bg-slate-900/80 backdrop-blur-xl rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.3)] border border-slate-800/50 overflow-hidden flex flex-col">
                                 <div className={`px-6 py-4 border-b border-slate-800/50 flex justify-between items-center ${order.status === 'pending' ? 'bg-amber-500/10' : 'bg-slate-800/30'}`}>
                                     <div className="flex items-center gap-3">

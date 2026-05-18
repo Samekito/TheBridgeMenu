@@ -1,32 +1,42 @@
 import axios from 'axios';
 
+
 const api = axios.create({
     baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000',
+    withCredentials: true,
+    withXSRFToken: true,
     headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
     },
 });
 
-api.interceptors.request.use((config) => {
-    const token = localStorage.getItem('admin_token');
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response?.status === 401) {
+            window.location.href = '/login';
+        }
+        if (!error.response) {
+            // Network error
+            console.error('Network error or server is down');
+        }
+        return Promise.reject(error);
     }
-    return config;
-});
+);
+
+export const getCsrfCookie = async () => {
+    await api.get('/sanctum/csrf-cookie');
+};
 
 export const login = async (credentials: any) => {
+    await getCsrfCookie();
     const { data } = await api.post('/api/login', credentials);
-    if (data.token) {
-        localStorage.setItem('admin_token', data.token);
-    }
     return data;
 };
 
 export const logout = async () => {
     await api.post('/api/logout');
-    localStorage.removeItem('admin_token');
 };
 
 export const getUser = async () => {
@@ -76,7 +86,7 @@ export const uploadImage = async (file: File) => {
             'Content-Type': 'multipart/form-data',
         },
     });
-    return data.path; // e.g. /storage/menu-images/xxxx.jpg
+    return data.path;
 };
 
 export const getAdmins = async () => {
@@ -103,7 +113,7 @@ export const updatePassword = async (passwordData: any) => {
 export const fetchOrders = async (status?: string) => {
     const url = status ? `/api/orders?status=${status}` : '/api/orders';
     const { data } = await api.get(url);
-    return data.data ?? data; // Unwrap paginated response
+    return data;
 };
 
 export const clearOrder = async (id: number) => {
@@ -113,7 +123,7 @@ export const clearOrder = async (id: number) => {
 
 export const fetchAuditLogs = async () => {
     const { data } = await api.get('/api/audit-logs');
-    return data.data ?? data; // Unwrap paginated response
+    return data;
 };
 
 export default api;

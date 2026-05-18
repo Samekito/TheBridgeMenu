@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { saveMenuItem, uploadImage, deleteMenuItem } from '../api/adminApi';
 import { X, Upload, Loader2, Trash2, UtensilsCrossed, ShieldAlert } from 'lucide-react';
+import { getImageUrl } from '@the-bridge-menu/shared-types/utils';
 
 interface MenuItemFormModalProps {
     isOpen: boolean;
@@ -18,6 +19,7 @@ export default function MenuItemFormModal({ isOpen, onClose, item, categories }:
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [isUploading, setIsUploading] = useState(false);
     const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         if (item && isOpen) {
@@ -26,16 +28,24 @@ export default function MenuItemFormModal({ isOpen, onClose, item, categories }:
             setValue('description', item.description || '');
             setValue('price', item.price);
             setValue('is_available', item.is_available);
-            setImagePreview(item.image_url ? (item.image_url.startsWith('http') ? item.image_url : `http://localhost:8000${item.image_url}`) : null);
+            setImagePreview(item.image_url ? getImageUrl(item.image_url) : null);
         } else if (isOpen) {
             reset();
             setImageFile(null);
             setImagePreview(null);
+            setError(null);
             setIsConfirmingDelete(false);
             if (categories.length > 0) {
                 setValue('category_id', categories[0].id);
             }
         }
+
+        // Cleanup object URL
+        return () => {
+            if (imagePreview && imagePreview.startsWith('blob:')) {
+                URL.revokeObjectURL(imagePreview);
+            }
+        };
     }, [item, isOpen, reset, setValue, categories]);
 
     const saveMutation = useMutation({
@@ -56,6 +66,12 @@ export default function MenuItemFormModal({ isOpen, onClose, item, categories }:
     });
 
     const onSubmit = async (data: any) => {
+        setError(null);
+        if (!item && !imageFile && !imagePreview) {
+            setError('Every great dish needs a picture! Please add an image for your new menu item.');
+            return;
+        }
+
         let imageUrl = item?.image_url;
         
         if (imageFile) {
@@ -63,7 +79,7 @@ export default function MenuItemFormModal({ isOpen, onClose, item, categories }:
             try {
                 imageUrl = await uploadImage(imageFile);
             } catch (err) {
-                console.error("Image upload failed", err);
+                setError("We hit a snag while uploading your image. Please try again.");
                 setIsUploading(false);
                 return;
             }
@@ -85,6 +101,7 @@ export default function MenuItemFormModal({ isOpen, onClose, item, categories }:
             const file = e.target.files[0];
             setImageFile(file);
             setImagePreview(URL.createObjectURL(file));
+            setError(null);
         }
     };
 
@@ -105,11 +122,18 @@ export default function MenuItemFormModal({ isOpen, onClose, item, categories }:
                         {item ? 'Edit Menu Item' : 'Add New Item'}
                     </h2>
                     
+                    {error && (
+                        <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm flex items-center gap-3">
+                            <ShieldAlert className="w-5 h-5 flex-shrink-0" />
+                            <p>{error}</p>
+                        </div>
+                    )}
+                    
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                         
                         {/* Image Upload */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-2">Item Image</label>
+                            <label className="block text-sm font-medium text-slate-300 mb-2">Item Image <span className="text-red-500">*</span></label>
                             <div className="flex items-center gap-6">
                                 <div className="w-24 h-24 rounded-xl bg-slate-800 border border-slate-700 overflow-hidden flex items-center justify-center flex-shrink-0">
                                     {imagePreview ? (
@@ -131,25 +155,25 @@ export default function MenuItemFormModal({ isOpen, onClose, item, categories }:
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                             <div>
-                                <label className="block text-sm font-medium text-slate-300 mb-1">Name</label>
+                                <label className="block text-sm font-medium text-slate-300 mb-1">Name <span className="text-red-500">*</span></label>
                                 <input {...register('name', { required: true })} className="block w-full px-3 py-2 border border-slate-700 bg-slate-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500 outline-none" />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-slate-300 mb-1">Category</label>
-                                <select {...register('category_id')} className="block w-full px-3 py-2 border border-slate-700 bg-slate-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500 outline-none">
+                                <label className="block text-sm font-medium text-slate-300 mb-1">Category <span className="text-red-500">*</span></label>
+                                <select {...register('category_id', { required: true })} className="block w-full px-3 py-2 border border-slate-700 bg-slate-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500 outline-none">
                                     {categories?.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
                                 </select>
                             </div>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-1">Description</label>
-                            <textarea {...register('description')} rows={3} className="block w-full px-3 py-2 border border-slate-700 bg-slate-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"></textarea>
+                            <label className="block text-sm font-medium text-slate-300 mb-1">Description <span className="text-red-500">*</span></label>
+                            <textarea {...register('description', { required: true })} rows={3} className="block w-full px-3 py-2 border border-slate-700 bg-slate-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"></textarea>
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-end">
                             <div>
-                                <label className="block text-sm font-medium text-slate-300 mb-1">Price (₦)</label>
+                                <label className="block text-sm font-medium text-slate-300 mb-1">Price (₦) <span className="text-red-500">*</span></label>
                                 <input type="number" step="0.01" {...register('price', { required: true })} className="block w-full px-3 py-2 border border-slate-700 bg-slate-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500 outline-none" />
                             </div>
                             <div className="pb-2">
