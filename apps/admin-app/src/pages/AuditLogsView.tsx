@@ -4,7 +4,11 @@ import { Loader2, History, User, Calendar, Tag, Utensils, PlusCircle, RefreshCw,
 import type { AuditLogItem, User as UserType } from '@the-bridge-menu/shared-types';
 
 export default function AuditLogsView({ currentUser }: { currentUser: UserType }) {
-    const { data: logs, isLoading } = useQuery({ queryKey: ['audit-logs'], queryFn: fetchAuditLogs });
+    const { data: logs, isLoading } = useQuery({ 
+        queryKey: ['audit-logs'], 
+        queryFn: fetchAuditLogs,
+        enabled: currentUser?.role === 'super-admin'
+    });
 
     if (currentUser?.role !== 'super-admin') {
         return (
@@ -56,12 +60,12 @@ export default function AuditLogsView({ currentUser }: { currentUser: UserType }
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-800/50">
-                            {(!logs || logs.length === 0) ? (
+                            {(!logs || (logs.data || logs).length === 0) ? (
                                 <tr>
                                     <td colSpan={3} className="p-8 text-center text-slate-500 italic">No audit history found yet.</td>
                                 </tr>
                             ) : (
-                                logs.map((log: AuditLogItem) => (
+                                (logs.data || logs).map((log: AuditLogItem) => (
                                     <tr key={log.id} className="hover:bg-slate-800/30 transition-colors group">
                                         <td className="p-4">
                                             <div className="flex items-start gap-3">

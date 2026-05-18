@@ -27,11 +27,16 @@ class OrderController extends Controller
             $totalPrice = 0;
             $orderItems = [];
 
+            $itemIds = collect($validated['items'])->pluck('menu_item_id');
+            $menuItems = MenuItem::whereIn('id', $itemIds)->get()->keyBy('id');
+            $unavailableItems = [];
+
             foreach ($validated['items'] as $itemData) {
-                $menuItem = MenuItem::findOrFail($itemData['menu_item_id']);
+                $menuItem = $menuItems->get($itemData['menu_item_id']);
                 
-                if (!$menuItem->is_available) {
-                    abort(400, "Item {$menuItem->name} is currently unavailable.");
+                if (!$menuItem || !$menuItem->is_available) {
+                    $unavailableItems[] = $menuItem ? $menuItem->name : 'Unknown Item';
+                    continue;
                 }
 
                 $itemTotal = $menuItem->price * $itemData['quantity'];
@@ -44,6 +49,13 @@ class OrderController extends Controller
                 ];
             }
 
+            if (count($unavailableItems) > 0) {
+                return response()->json([
+                    'message' => 'Some items are currently unavailable.',
+                    'unavailable_items' => $unavailableItems
+                ], 400);
+            }
+
             $order = Order::create([
                 'customer_name' => $validated['customer_name'] ?? null,
                 'customer_phone' => $validated['customer_phone'] ?? null,
@@ -52,9 +64,7 @@ class OrderController extends Controller
                 'total_price' => $totalPrice,
             ]);
 
-            foreach ($orderItems as $item) {
-                $order->items()->create($item);
-            }
+            $order->items()->createMany($orderItems);
 
             Log::info('New order submitted', ['order_id' => $order->id, 'total' => $totalPrice, 'items_count' => count($orderItems)]);
 

@@ -73,9 +73,9 @@ class CategoryController extends Controller
             abort(403, 'Only Super Admins can delete categories.');
         }
 
-        $category = Category::findOrFail($id);
+        DB::transaction(function () use ($request, $id) {
+            $category = Category::where('id', $id)->lockForUpdate()->firstOrFail();
 
-        DB::transaction(function () use ($request, $category) {
             // Log + delete each item to trigger model events (image cleanup)
             foreach ($category->menuItems as $item) {
                 AuditLog::create([
@@ -96,9 +96,9 @@ class CategoryController extends Controller
             ]);
 
             $category->delete();
+            
+            Log::info('Category deleted with cascading items', ['category' => $category->name, 'user_id' => $request->user()->id]);
         });
-
-        Log::info('Category deleted with cascading items', ['category' => $category->name, 'user_id' => $request->user()->id]);
 
         return response()->json(['message' => 'Category and its items deleted successfully.']);
     }

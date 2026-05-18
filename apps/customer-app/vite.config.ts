@@ -6,4 +6,23 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   envDir: '../../',
+  server: {
+    port: 5174,
+    strictPort: true, // fail fast if port is already taken
+    proxy: {
+      // Proxy all /api and /storage requests to the Laravel backend
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+      '/storage': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+      '/sanctum': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+    },
+  },
 })

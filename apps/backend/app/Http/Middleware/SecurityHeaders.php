@@ -14,8 +14,12 @@ class SecurityHeaders
 
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->headers->set('X-Frame-Options', 'DENY');
-        $response->headers->set('X-XSS-Protection', '1; mode=block');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
+
+        // Strict Content-Security-Policy
+        $apiDomain = env('APP_URL', 'http://localhost:8000');
+        $csp = "default-src 'self'; script-src 'self'; img-src 'self' {$apiDomain} data: blob:; connect-src 'self' {$apiDomain}; frame-ancestors 'none';";
+        $response->headers->set('Content-Security-Policy', $csp);
         $response->headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
 
         if (config('app.env') === 'production') {

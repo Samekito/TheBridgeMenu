@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
@@ -17,28 +18,31 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        if (Auth::attempt($request->only('email', 'password'))) {
+            $request->session()->regenerate();
+            $user = Auth::user();
+            
+            Log::info('Successful login', ['user_id' => $user->id, 'email' => $user->email, 'ip' => $request->ip()]);
 
-        if (! $user || ! Hash::check($request->password, $user->password)) {
-            Log::warning('Failed login attempt', ['email' => $request->email, 'ip' => $request->ip()]);
-
-            throw ValidationException::withMessages([
-                'email' => ['Invalid credentials.'],
+            return response()->json([
+                'user' => $user->only(['id', 'name', 'email', 'role']),
             ]);
         }
 
-        Log::info('Successful login', ['user_id' => $user->id, 'email' => $user->email, 'ip' => $request->ip()]);
+        Log::warning('Failed login attempt', ['email' => $request->email, 'ip' => $request->ip()]);
 
-        return response()->json([
-            'token' => $user->createToken('admin-token')->plainTextToken,
-            'user' => $user->only(['id', 'name', 'email', 'role']),
+        throw ValidationException::withMessages([
+            'email' => ['Invalid credentials.'],
         ]);
     }
 
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
-        Log::info('User logged out', ['user_id' => $request->user()->id]);
+        Auth::guard('web')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        Log::info('User logged out', ['ip' => $request->ip()]);
         return response()->json(['message' => 'Logged out successfully']);
     }
 }

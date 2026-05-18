@@ -15,7 +15,7 @@ export default function DashboardPage() {
     const navigate = useNavigate();
     
     const { data: user } = useQuery({ queryKey: ['user'], queryFn: getUser });
-    const { data: categories, isLoading } = useQuery({ queryKey: ['menu'], queryFn: fetchMenuItems });
+    const { data: categories, isLoading } = useQuery({ queryKey: ['menu'], queryFn: fetchMenuItems, staleTime: 60000 });
 
     const [isMenuModalOpen, setIsMenuModalOpen] = useState(false);
     const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);

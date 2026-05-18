@@ -12,13 +12,14 @@ $app = Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->statefulApi();
         // Security headers for all responses
         $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
+        $middleware->append(\App\Http\Middleware\RequestIdMiddleware::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();
 
-$app->useEnvironmentPath(dirname(__DIR__, 2));
 
 return $app;

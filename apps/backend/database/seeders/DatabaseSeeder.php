@@ -16,7 +16,7 @@ class DatabaseSeeder extends Seeder
         User::factory()->create([
             'name' => 'Super Admin',
             'email' => 'admin@thebridge.com',
-            'password' => Hash::make('password'),
+            'password' => Hash::make(env('SUPER_ADMIN_PASSWORD', \Illuminate\Support\Str::random(16))),
             'role' => 'super-admin',
         ]);
 

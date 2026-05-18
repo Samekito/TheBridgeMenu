@@ -23,7 +23,7 @@ export function MenuCard({ item, index }: Readonly<{ item: MenuItem; index: numb
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: index * 0.1 }}
-            className={`group relative rounded-2xl overflow-hidden shadow-sm hover:shadow-[0_8px_30px_rgb(249,115,22,0.15)] transition-all duration-500 border border-slate-700/50 hover:border-orange-500/20 bg-slate-800 flex flex-col ${item.is_available ? '' : 'opacity-60 grayscale'}`}
+            className={`group relative h-max rounded-2xl overflow-hidden shadow-sm hover:shadow-[0_8px_30px_rgb(249,115,22,0.15)] transition-all duration-500 border border-slate-700/50 hover:border-orange-500/20 bg-slate-800 flex flex-col ${item.is_available ? '' : 'opacity-60 grayscale'}`}
         >
             <div className="relative h-48 w-full bg-slate-900 overflow-hidden">
                 {item.image_url ? (

@@ -7,22 +7,25 @@ use App\Models\MenuItem;
 use App\Models\AuditLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Gate;
 
 class MenuController extends Controller
 {
     public function index()
     {
-        return response()->json(Category::with(['menuItems.creator', 'creator'])->get());
+        return response()->json(Category::with(['menuItems'])->get());
     }
 
     public function store(Request $request)
     {
+        Gate::authorize('manage-menu');
+
         $validated = $request->validate([
             'category_id' => 'required|exists:categories,id',
             'name' => 'required|string|max:255',
-            'description' => 'nullable|string|max:2000',
+            'description' => 'required|string|max:2000',
             'price' => 'required|numeric|min:0|max:999999.99',
-            'image_url' => ['nullable', 'string', 'regex:/^\/storage\/menu-images\//'],
+            'image_url' => ['required', 'string', 'max:2000'],
             'is_available' => 'boolean'
         ]);
 
@@ -52,14 +55,16 @@ class MenuController extends Controller
 
     public function update(Request $request, string $id)
     {
+        Gate::authorize('manage-menu');
+
         $item = MenuItem::findOrFail($id);
         
         $validated = $request->validate([
             'category_id' => 'exists:categories,id',
             'name' => 'string|max:255',
-            'description' => 'nullable|string|max:2000',
+            'description' => 'required|string|max:2000',
             'price' => 'numeric|min:0|max:999999.99',
-            'image_url' => ['nullable', 'string', 'regex:/^\/storage\/menu-images\//'],
+            'image_url' => ['required', 'string', 'max:2000'],
             'is_available' => 'boolean'
         ]);
 
@@ -81,6 +86,8 @@ class MenuController extends Controller
 
     public function destroy(Request $request, string $id)
     {
+        Gate::authorize('manage-menu');
+
         $item = MenuItem::findOrFail($id);
         $categoryName = $item->category->name ?? 'Unknown';
 

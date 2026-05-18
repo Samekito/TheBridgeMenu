@@ -1,9 +1,10 @@
 {
     "$schema": "https://www.schemastore.org/package.json",
+    "name": "backend",
     "private": true,
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "concurrently \"php artisan serve\" \"vite\""
     }
 }

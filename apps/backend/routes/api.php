@@ -7,9 +7,16 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\CategoryController;
 
-// Public routes
-Route::get('/menu', [MenuController::class, 'index']);
-Route::get('/menu/{id}', [MenuController::class, 'show']);
+// Health Check
+Route::get('/health', function () {
+    return response()->json(['status' => 'ok']);
+});
+
+// Public Menu Routes
+Route::middleware('throttle:60,1')->group(function () {
+    Route::get('/menu', [MenuController::class, 'index']);
+    Route::get('/menu/{id}', [MenuController::class, 'show']);
+});
 
 // Rate-limited public endpoints
 Route::middleware('throttle:10,1')->group(function () {
